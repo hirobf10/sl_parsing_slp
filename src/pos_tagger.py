@@ -1,5 +1,5 @@
 import argparse
-from typing import Dict, List
+from typing import List, Tuple, Union
 from collections import defaultdict, deque
 import random
 
@@ -18,7 +18,9 @@ class HMMTagger:
         self.prob_emission = None
         self.pos = None
 
-    def _get_count_dict(self, dataset: List[str], split_token="_"):
+    def _get_count_dict(
+        self, dataset: List[str], split_token="_"
+    ) -> Tuple[defaultdict[defaultdict[int]], defaultdict[defaultdict[int]]]:
         cnt_transition = defaultdict(lambda: defaultdict(int))
         cnt_emission = defaultdict(lambda: defaultdict(int))
 
@@ -38,7 +40,9 @@ class HMMTagger:
 
         return cnt_transition, cnt_emission
 
-    def _get_prob_dict(self, cnt_dict: defaultdict[defaultdict[int]]):
+    def _get_prob_dict(
+        self, cnt_dict: defaultdict[defaultdict[int]]
+    ) -> defaultdict[defaultdict[int]]:
         prob = defaultdict(lambda: defaultdict(int))
         for a, b_cnt in cnt_dict.items():
             num_b = sum([cnt for cnt in b_cnt.values()])
@@ -56,11 +60,9 @@ class HMMTagger:
 
         self.pos = list(cnt_transition.keys())
 
-    def _viterbi(self, tokens: List[str]):
+    def _viterbi(self, tokens: List[str]) -> Tuple[List[List[Union[None, str]]], float]:
         prob_path = defaultdict(lambda: defaultdict(int))
         backpointer = defaultdict(lambda: defaultdict(str))
-
-        # N = len(self.pos)
         T = len(tokens)
 
         # initialization step
@@ -117,13 +119,15 @@ class HMMTagger:
 
         return list(reversed(bestpath_reversed)), prob_bestpath
 
-    def _get_metrics(self, TP: int, FN: int, FP: int):
+    def _get_metrics(self, TP: int, FN: int, FP: int) -> Tuple[float, float, float]:
         prec = TP / (TP + FP)
         recall = TP / (TP + FN)
         f1 = 2 * prec * recall / (prec + recall)
         return prec, recall, f1
 
-    def _get_scores(self, y_test: List[str], y_pred: List[str]):
+    def _get_scores(
+        self, y_test: List[str], y_pred: List[str]
+    ) -> defaultdict[defaultdict[int]]:
         assert len(y_test) == len(y_pred)
 
         scores = defaultdict(lambda: defaultdict(int))
@@ -135,10 +139,12 @@ class HMMTagger:
                 scores[pos_pred]["FP"] += 1
         return scores
 
-    def _get_ppl(self, prob: float, N: int):
+    def _get_ppl(self, prob: float, N: int) -> float:
         return (1 / prob) ** (1 / N)
 
-    def evaluate(self, dataset: List[str], split_token="_", return_each_metric=False):
+    def evaluate(
+        self, dataset: List[str], split_token="_", return_each_metric=False
+    ) -> Tuple:
         """
         Return macro precision, macro recall, macro f-score and the average of PPL.
         The average of PPL is calculated without the sentences where the path probabilities are assigned as zeros
@@ -196,7 +202,7 @@ class HMMTagger:
         else:
             return ave_prec, ave_recall, ave_f1, ppl_average
 
-    def tag(self, text: str, split_token="_"):
+    def tag(self, text: str, split_token="_") -> Tuple[str, float]:
         """
         Return a sequence where POS is assigned to each token, with the specified split token.
         None is assigned when the model can not predict any POS.

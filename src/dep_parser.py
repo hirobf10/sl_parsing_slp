@@ -1,12 +1,12 @@
 import argparse
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from collections import defaultdict
 import random
 
 import numpy as np
 
 
-def load_dataset(path, encoding="utf-8"):
+def load_dataset(path, encoding: str):
     with open(path, encoding=encoding) as f:
         dataset = f.readlines()
     return dataset
@@ -21,10 +21,10 @@ class Dataset:
         """
         self.data = self._format(dataset)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, slice]) -> List[List[str]]:
         if isinstance(key, slice):
             return [self.data[i] for i in range(*key.indices(len(self.data)))]
         elif isinstance(key, int):
@@ -36,15 +36,15 @@ class Dataset:
         else:
             raise TypeError
 
-    def _format(self, dataset: List[str]):
-        batch = []
+    def _format(self, dataset: List[str]) -> List[List[List[str]]]:
+        format_dataset = []
         for i in range(len(dataset)):
             if dataset[i] == "\n":
                 first = i - int(dataset[i - 1].split("\t")[0])
-                batch.append(
+                format_dataset.append(
                     [line.split("\n")[0].split("\t") for line in dataset[first:i]]
                 )
-        return batch
+        return format_dataset
 
 
 class FeatureExtractor:
@@ -56,12 +56,12 @@ class FeatureExtractor:
         self.features = None
         self.weight = None
 
-    def get_weights(self):
+    def get_weights(self) -> defaultdict[int]:
         self.features = self._get_features()
         self.weights = self._update_weights()
         return self.weights
 
-    def _count_features(self):
+    def _count_features(self) -> defaultdict[defaultdict[int]]:
         cnt = defaultdict(lambda: defaultdict(int))
         for batch in self.dataset:
             for i, data_i in enumerate(batch):
@@ -83,7 +83,7 @@ class FeatureExtractor:
                     cnt["dep_pos"][f"{data_i[-1]}_{head[3]}"] += 1
         return cnt
 
-    def _get_features(self):
+    def _get_features(self) -> List[str]:
         """
         This function extract features for graph-based parser.
         Features include word form, pos, combination of pos and word form.
@@ -102,7 +102,7 @@ class FeatureExtractor:
                     features.append(feat)
         return features
 
-    def _init_weights(self):
+    def _init_weights(self) -> defaultdict[int]:
         weights = defaultdict(int)
         for feat in self.features:
             if self.init_func:
@@ -111,7 +111,7 @@ class FeatureExtractor:
                 weights[feat] = random.random()
         return weights
 
-    def _update_weights(self):
+    def _update_weights(self) -> defaultdict[int]:
         w = self._init_weights()
         for batch in self.dataset:
             score = defaultdict(int)
@@ -162,10 +162,10 @@ class MSTParser:
     def __init__(self, extractor):
         self.w = extractor.get_weights()
 
-    def __call__(self, batch):
+    def __call__(self, batch: List[List[str]]) -> List[int]:
         return self.parse(batch)
 
-    def parse(self, batch: List[str]):
+    def parse(self, batch: List[List[str]]) -> List[int]:
         scores = self._score(batch)
         best_edges = self._get_best_edges(scores)
         scores = self._subtract(scores, best_edges)
@@ -175,7 +175,7 @@ class MSTParser:
             best_edges = self._remove_cycles(scores, cycles, best_edges)
         return [edge for edge, _ in best_edges[1:]]
 
-    def evaluate(self, dataset: Dataset):
+    def evaluate(self, dataset: Dataset) -> float:
         UAS_SUM = 0
         for batch in dataset:
             # Parse a sentence
@@ -191,7 +191,7 @@ class MSTParser:
             UAS_SUM += self._get_UAS(y_test, y_pred)
         return UAS_SUM / len(dataset)
 
-    def _score(self, batch: List[str]):
+    def _score(self, batch: List[List[str]]) -> np.ndarray:
         N = len(batch)
         scores = np.ones([N + 1, N + 1]) * -1e3
         for i in range(1, N + 1):
@@ -216,7 +216,7 @@ class MSTParser:
                 scores[i, j] = score
         return scores
 
-    def _get_best_edges(self, scores: np.ndarray):
+    def _get_best_edges(self, scores: np.ndarray) -> List[Tuple[int, float]]:
         #         ignore 0-th row because it would contain scores between ROOT as dependent and words as head
         return [
             (np.argmax(scores[i, :]), np.max(scores[i, :])) if i != 0 else (-1, -1e3)
@@ -235,7 +235,9 @@ class MSTParser:
     #                 best_edges.append((head_idx, scores[i, head_idx]))
     #         return best_edges
 
-    def _subtract(self, scores: np.ndarray, best_edges: List[Tuple[int, float]]):
+    def _subtract(
+        self, scores: np.ndarray, best_edges: List[Tuple[int, float]]
+    ) -> np.ndarray:
         N = scores.shape[0]
         for i in range(N):
             for j in range(N):
@@ -244,7 +246,7 @@ class MSTParser:
                 scores[i, j] -= best_edges[i][1]
         return scores
 
-    def _involveCycle(self, edges: List[int]):
+    def _involveCycle(self, edges: List[int]) -> Tuple[bool, List]:
         memory = []
         for dep, head in enumerate(edges):
             dep_ = edges[head]
@@ -256,8 +258,11 @@ class MSTParser:
             return (False, [])
 
     def _remove_cycles(
-        self, scores: np.ndarray, cycles: List, best_edges: List[Tuple[int, float]]
-    ):
+        self,
+        scores: np.ndarray,
+        cycles: List[List[int]],
+        best_edges: List[Tuple[int, float]],
+    ) -> List[Tuple[int, float]]:
         N = scores.shape[0]
         for cycle in cycles:
             scores_ = scores.copy()
@@ -271,10 +276,10 @@ class MSTParser:
             best_edges[c_head] = (j, scores[c_head, j])
         return best_edges
 
-    def _extract_test(self, batch: List[str]):
+    def _extract_test(self, batch: List[List[str]]) -> List[int]:
         return [int(data[6]) for data in batch]
 
-    def _get_UAS(self, y_test: List[int], y_pred: List[int]):
+    def _get_UAS(self, y_test: List[int], y_pred: List[int]) -> float:
         assert len(y_test) == len(y_pred)
         match_num = 0
         for test, pred in zip(y_test, y_pred):
