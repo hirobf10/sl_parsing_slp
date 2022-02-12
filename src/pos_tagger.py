@@ -1,5 +1,5 @@
 import argparse
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple
 from collections import defaultdict, deque
 import random
 
@@ -11,6 +11,9 @@ def load_dataset(path: str, encoding="utf-8"):
 
 
 class HMMTagger:
+    bos_token: str
+    eos_token: str
+
     def __init__(self, bos_token="<s>", eos_token="</s>"):
         self.bos_token = bos_token
         self.eos_token = eos_token
@@ -60,7 +63,7 @@ class HMMTagger:
 
         self.pos = list(cnt_transition.keys())
 
-    def _viterbi(self, tokens: List[str]) -> Tuple[List[List[Union[None, str]]], float]:
+    def _viterbi(self, tokens: List[str]) -> Tuple[List[List[Optional[str]]], float]:
         prob_path = defaultdict(lambda: defaultdict(int))
         backpointer = defaultdict(lambda: defaultdict(str))
         T = len(tokens)

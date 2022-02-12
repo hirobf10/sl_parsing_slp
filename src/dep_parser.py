@@ -1,5 +1,5 @@
 import argparse
-from typing import List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 from collections import defaultdict
 import random
 
@@ -48,6 +48,11 @@ class Dataset:
 
 
 class FeatureExtractor:
+    dataset: Dataset
+    lr: float
+    topn: int
+    init_func: Callable
+
     def __init__(self, dataset: Dataset, lr=0.01, topn=30, init_func=None):
         self.dataset = dataset
         self.lr = lr
@@ -159,7 +164,9 @@ class FeatureExtractor:
 
 
 class MSTParser:
-    def __init__(self, extractor):
+    extractor: FeatureExtractor
+
+    def __init__(self, extractor: FeatureExtractor):
         self.w = extractor.get_weights()
 
     def __call__(self, batch: List[List[str]]) -> List[int]:
