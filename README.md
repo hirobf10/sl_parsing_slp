@@ -112,13 +112,13 @@ At the moment, I am not sure where I had mistaken but I will reimplement it in t
 #### Example
 ```
 Sentence:
-the backdrop to friday 's slide was markedly different from that of the october 1987 crash , fund managers argue .
+the year-to-date total was 12,006,883 tons , up 7.8 % from 11,141,711 tons a year earlier .
 
 Prediction:
-[5, 20, 21, 5, 12, 12, 5, 20, 7, 20, 3, 20, 5, 5, 20, 12, 20, 20, 20, 0, 7]
+[16, 16, 4, 0, 16, 4, 16, 4, 16, 11, 5, 16, 4, 16, 11, 17, 4]
 
 Reference:
-[2, 7, 2, 5, 6, 3, 20, 9, 7, 9, 10, 11, 16, 16, 16, 12, 20, 19, 20, 0, 20]
+[3, 3, 4, 0, 6, 4, 4, 4, 10, 8, 8, 13, 11, 15, 16, 11, 4]
 ```
 
 ## Reference
