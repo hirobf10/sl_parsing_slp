@@ -63,21 +63,25 @@ class HMMTagger:
 
         self.pos = list(cnt_transition.keys())
 
-    def _viterbi(self, tokens: List[str]) -> Tuple[List[List[Optional[str]]], float]:
+    def _viterbi(
+        self, tokens: List[str], lmd=0.995
+    ) -> Tuple[List[List[Optional[str]]], float]:
         prob_path = defaultdict(lambda: defaultdict(int))
         backpointer = defaultdict(lambda: defaultdict(str))
         T = len(tokens)
-
+        N = len(
+            set(
+                [
+                    word
+                    for pos in self.prob_emission.keys()
+                    for word in self.prob_emission[pos].keys()
+                ]
+            )
+        )
         # initialization step
         for state in self.pos:
-            if (state not in self.prob_transition[self.bos_token]) or (
-                tokens[0] not in self.prob_emission[state]
-            ):
-                continue
-            prob_path[1][state] = (
-                self.prob_transition[self.bos_token][state]
-                * self.prob_emission[state][tokens[0]]
-            )
+            p_e = lmd * self.prob_emission[state][tokens[0]] + (1 - lmd) / N
+            prob_path[1][state] = self.prob_transition[self.bos_token][state] * p_e
             backpointer[1][state] = self.bos_token
 
         # recursion step
@@ -87,14 +91,11 @@ class HMMTagger:
             pointer = None
             for state in self.pos:
                 for state_ in self.pos:
-                    if (state not in self.prob_transition[state_]) or (
-                        tokens[t - 1] not in self.prob_emission[state]
-                    ):
-                        continue
+                    p_e = lmd * self.prob_emission[state][tokens[t - 1]] + (1 - lmd) / N
                     temp = (
                         prob_path[t - 1][state_]
                         * self.prob_transition[state_][state]
-                        * self.prob_emission[state][tokens[t - 1]]
+                        * p_e
                     )
                     if temp >= p_max:
                         p_max = temp
