@@ -11,10 +11,12 @@ def load_dataset(path: str, encoding="utf-8"):
 
 
 class HMMTagger:
+    lmd: float
     bos_token: str
     eos_token: str
 
-    def __init__(self, bos_token="<s>", eos_token="</s>"):
+    def __init__(self, lmd=0.995, bos_token="<s>", eos_token="</s>"):
+        self.lmd = lmd
         self.bos_token = bos_token
         self.eos_token = eos_token
         self.prob_transition = None
@@ -63,9 +65,7 @@ class HMMTagger:
 
         self.pos = list(cnt_transition.keys())
 
-    def _viterbi(
-        self, tokens: List[str], lmd=0.995
-    ) -> Tuple[List[List[Optional[str]]], float]:
+    def _viterbi(self, tokens: List[str]) -> Tuple[List[List[Optional[str]]], float]:
         prob_path = defaultdict(lambda: defaultdict(int))
         backpointer = defaultdict(lambda: defaultdict(str))
         T = len(tokens)
@@ -80,7 +80,7 @@ class HMMTagger:
         )
         # initialization step
         for state in self.pos:
-            p_e = lmd * self.prob_emission[state][tokens[0]] + (1 - lmd) / N
+            p_e = self.lmd * self.prob_emission[state][tokens[0]] + (1 - self.lmd) / N
             prob_path[1][state] = self.prob_transition[self.bos_token][state] * p_e
             backpointer[1][state] = self.bos_token
 
@@ -91,7 +91,10 @@ class HMMTagger:
             pointer = None
             for state in self.pos:
                 for state_ in self.pos:
-                    p_e = lmd * self.prob_emission[state][tokens[t - 1]] + (1 - lmd) / N
+                    p_e = (
+                        self.lmd * self.prob_emission[state][tokens[t - 1]]
+                        + (1 - self.lmd) / N
+                    )
                     temp = (
                         prob_path[t - 1][state_]
                         * self.prob_transition[state_][state]
@@ -225,7 +228,7 @@ def main(args):
     random.seed(args.seed)
     train_data = load_dataset(args.train_file_path, encoding=args.encoding)
     test_data = load_dataset(args.test_file_path, encoding=args.encoding)
-    tagger = HMMTagger()
+    tagger = HMMTagger(lmd=args.lmd)
     tagger.train(train_data, args.split_token)
     if args.mode == "eval":
         _ = tagger.evaluate(test_data, args.split_token)
@@ -244,11 +247,16 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_file_path", default="data/wiki-en-train.norm_pos")
-    parser.add_argument("--test_file_path", default="data/wiki-en-test.norm_pos")
-    parser.add_argument("--encoding", default="utf-8")
-    parser.add_argument("--split_token", default="_")
+    parser.add_argument(
+        "--train_file_path", type=str, default="data/wiki-en-train.norm_pos"
+    )
+    parser.add_argument(
+        "--test_file_path", type=str, default="data/wiki-en-test.norm_pos"
+    )
+    parser.add_argument("--encoding", type=str, default="utf-8")
+    parser.add_argument("--split_token", type=str, default="_")
     parser.add_argument("--mode", default="eval", choices=["eval", "pred"])
+    parser.add_argument("--lmd", type=float, default=0.995)
     parser.add_argument("--seed", type=int, default=42)
 
     main(parser.parse_args())
