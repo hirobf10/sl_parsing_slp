@@ -91,7 +91,7 @@ class FeatureExtractor:
     def _get_features(self) -> List[str]:
         """
         This function extract features for graph-based parser.
-        Features include word form, pos, combination of pos and word form.
+        Features include word form, pos, dependency, combination of them between dependent and head
         """
         cnt = self._count_features()
         features = []
