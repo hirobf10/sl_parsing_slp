@@ -108,7 +108,7 @@ Actually, I had completely misunderstood the way to update parameters and there 
 At the moment, I am not sure where I had mistaken but I will reimplement it in the future.
 
 #### Example
-Following elements of prediction and reference are heads corresponging to the element. For example, the third element of the prediction, 4, indicates its  head is fourth element of sentence, that is, *was*.
+Following elements of prediction and reference are heads corresponging to the elements. For example, the third element of the prediction, 4, indicates its  head is fourth element of sentence, that is, *was*.
 ```
 Sentence:
 the year-to-date total was 12,006,883 tons , up 7.8 % from 11,141,711 tons a year earlier .
