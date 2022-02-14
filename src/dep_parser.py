@@ -304,7 +304,7 @@ def main(args):
     extractor = FeatureExtractor(train_dataset, topn=args.topn, lr=args.lr)
     parser = MSTParser(extractor)
     if args.mode == "eval":
-        print("UAC: {:.5f}".format(parser.evaluate(test_dataset)))
+        print("UAS: {:.5f}".format(parser.evaluate(test_dataset)))
     else:
         sentence = random.choice(test_dataset)
         print("Sentence:")
