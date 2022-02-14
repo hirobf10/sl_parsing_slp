@@ -39,7 +39,7 @@ Brief explanation of my codes:
 
 ### Experiments
 - train dataset: [data/wiki-en-train.norm_pos](https://github.com/hirobf10/sl_parsing_slp/blob/main/data/wiki-en-train.norm_pos), test dataset: [data/wiki-en-test.norm_pos]((https://github.com/hirobf10/sl_parsing_slp/blob/main/data/wiki-en-test.norm_pos))
-- To deal with unknow words, I exploit a smoothing method for emission probability. I smoothed the probability with $\lambda$ (`lmd`) parameter [2].
+- To deal with unknow words, I exploit a smoothing method for emission probability. I smoothed the probability with $\lambda$ (`lmd`) parameter [2], 0.995 in this experiment.
 - In this assignment, I show the results of precision, recall and f-score.
 
 ### Results
