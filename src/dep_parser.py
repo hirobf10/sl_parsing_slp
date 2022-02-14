@@ -317,9 +317,13 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train_file_path", default="data/mstparser-en-train.dep")
-    parser.add_argument("--test_file_path", default="data/mstparser-en-test.dep")
-    parser.add_argument("--encoding", default="utf-8")
+    parser.add_argument(
+        "--train_file_path", type=str, default="data/mstparser-en-train.dep"
+    )
+    parser.add_argument(
+        "--test_file_path", type=str, default="data/mstparser-en-test.dep"
+    )
+    parser.add_argument("--encoding", type=str, default="utf-8")
     parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument("--topn", type=int, default=30)
     parser.add_argument("--mode", default="eval", choices=["eval", "pred"])
