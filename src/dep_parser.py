@@ -111,12 +111,8 @@ class FeatureExtractor:
 
     def extract(self):
         """
-                This function extract features for graph-based parser.
-        <<<<<<< HEAD
-                Features include word form, pos, dependency, combination of them between dependent and head
-        =======
-                Features include word form, pos, and combination of pos and word form.
-        >>>>>>> a51cafd (Fix the way to update parameters correctly)
+        This function extract features for graph-based parser.
+        Features include word form, pos, dependency, combination of them between dependent and head
         """
         cnt = self._count_features()
         features = []
@@ -228,22 +224,22 @@ class MSTParser:
 
     def _get_best_edges(self, scores: np.ndarray) -> List[Tuple[int, float]]:
         # ignore 0-th row because it would contain scores between ROOT as dependent and words as head
-        return [
-            (np.argmax(scores[i, :]), np.max(scores[i, :])) if i != 0 else (-1, -1e3)
-            for i in range(scores.shape[0])
-        ]
+        # return [
+        #     (np.argmax(scores[i, :]), np.max(scores[i, :])) if i != 0 else (-1, -1e3)
+        #     for i in range(scores.shape[0])
+        # ]
 
-    #         best_edges = []
-    #         root_child_idx = np.argmax(scores[:, 0])
-    #         for i in range(scores.shape[0]):
-    #             if i == root_child_idx:
-    #                 best_edges.append((0, scores[root_child_idx, 0]))
-    #             elif i == 0:
-    #                 best_edges.append((-1, -1e3))
-    #             else:
-    #                 head_idx = np.argmax(scores[i, 1:])
-    #                 best_edges.append((head_idx, scores[i, head_idx]))
-    #         return best_edges
+        best_edges = []
+        root_child_idx = np.argmax(scores[:, 0])
+        for i in range(scores.shape[0]):
+            if i == root_child_idx:
+                best_edges.append((0, scores[root_child_idx, 0]))
+            elif i == 0:
+                best_edges.append((-1, -1e3))
+            else:
+                head_idx = np.argmax(scores[i, 1:])
+                best_edges.append((head_idx, scores[i, head_idx]))
+        return best_edges
 
     def _subtract(
         self, scores: np.ndarray, best_edges: List[Tuple[int, float]]
