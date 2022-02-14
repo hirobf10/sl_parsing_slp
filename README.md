@@ -15,17 +15,17 @@ Codes: [src/pos_tagger.py](https://github.com/hirobf10/sl_parsing_slp/blob/main/
 ```bash
 poetry run python src/pos_tagger.py --mode=eval
 
-# The path probabilities of 154 sentences are assigned as zeros.
-# Precision: 0.5632051282051282, Recall: 0.04469060798621794, f-score: 0.08179061260804937, Average of PPL: 405.49789665762137
+# The path probabilities of 0 sentences are assigned as zeros.
+# Precision: 0.8412918589260101, Recall: 0.786099163707078, f-score: 0.8018346446054213
 ```
 - Inference
 ```bash
-poetry run python src/pos_tagger.py --mode=pred --seed=28
+poetry run python src/pos_tagger.py --mode=pred
 
 # Sentence:
-# One solution some researchers have used is to choose a particular dictionary , and just use its set of senses .
+# These include different variants of Lesk algorithm or most frequent sense algorithm .
 # Prediction:
-# ('One_CD solution_NN some_DT researchers_NNS have_VBP used_VBN is_VBZ to_TO choose_VB a_DT particular_JJ dictionary_NN ,_, and_CC just_RB use_VB its_PRP$ set_NN of_IN senses_NNS ._.', 1.0115399000049753e-52)
+# ('These_DT include_VBP different_JJ variants_NN of_IN Lesk_DT algorithm_NN or_CC most_JJS frequent_NN sense_NN algorithm_NN ._.', 3.549059910553398e-46)
 ```
 
 ### Approach  
@@ -39,27 +39,30 @@ Brief explanation of my codes:
 
 ### Experiments
 - train dataset: [data/wiki-en-train.norm_pos](https://github.com/hirobf10/sl_parsing_slp/blob/main/data/wiki-en-train.norm_pos), test dataset: [data/wiki-en-test.norm_pos]((https://github.com/hirobf10/sl_parsing_slp/blob/main/data/wiki-en-test.norm_pos))
-- No hyper parameters.
-- No special implementation for unknown tokens. This means that if all bigrams in a sentence are not seen in train dataset, the tagger cannot calculate the probabily of the sentence and assign any label.
-- In this assignment, I show precision, recall, f-score and perplexity.
+- To deal with unknow words, I exploit a smoothing method for emission probability. I smoothed the probability with $\lambda$ (`lmd`) parameter [2].
+- In this assignment, I show the results of precision, recall and f-score.
 
 ### Results
 #### Evaluation
 The model cannot calculate the probability of 154 sentences of the test dataset.
 In the following table, I report each metrics for the sentences where the model can calculate the probability.
-| Precision | Recall | f-score | PPL     |
-|-----------|--------|---------|---------|
-| 0.563     | 0.044  | 0.081   | 405.497 |
+| Precision | Recall | f-score |
+|-----------|--------|---------|
+| 0.841     | 0.786  | 0.801   |
 
 #### Example
-- One sample that the tagger seems to assign each label correctly
-```txt
-Part-of-speech_JJ tagging_NN In_IN any_DT real_JJ test_NN ,_, part-of-speech_JJ tagging_NN and_CC sense_NN tagging_NN are_VBP very_RB closely_RB related_JJ with_IN each_DT potentially_RB making_VBG constraints_NNS to_TO the_DT other_JJ ._.
+- A sample of labels the tagger assigned
 ```
-- One that the tagger cannot assign any label
-```txt
-These_None include_None different_None variants_None of_None Lesk_None algorithm_None or_None most_None frequent_None sense_None algorithm_None ._None
+Sentence:
+It is based on the hypothesis that words used together in text are related to each other and that the relation can be observed in the definitions of the words and their senses .
+
+Prediction:
+It_PRP is_VBZ based_VBN on_IN the_DT hypothesis_NN that_IN words_NNS used_VBN together_RB in_IN text_NN are_VBP related_VBN to_TO each_DT other_JJ and_CC that_IN the_DT relation_NN can_MD be_VB observed_VBN in_IN the_DT definitions_NN of_IN the_DT words_NNS and_CC their_PRP$ senses_NNS ._.
+
+Reference:
+It_PRP is_VBZ based_VBN on_IN the_DT hypothesis_NN that_IN words_NNS used_VBN together_RB in_IN text_NN are_VBP related_JJ to_TO each_DT other_JJ and_CC that_IN the_DT relation_NN can_MD be_VB observed_VBN in_IN the_DT definitions_NNS of_IN the_DT words_NNS and_CC their_PRP$ senses_NNS ._.
 ```
+
 ## Dependency parser
 ### Usage
 Codes: [src/dep_parser.py](https://github.com/hirobf10/sl_parsing_slp/blob/main/src/dep_parser.py)
@@ -107,14 +110,17 @@ Actually, I had completely misunderstood the way to update parameters and there 
 At the moment, I am not sure where I had mistaken but I will reimplement it in the future.
 
 #### Example
-```txt
+```
 Sentence:
 the backdrop to friday 's slide was markedly different from that of the october 1987 crash , fund managers argue .
+
 Prediction:
 [5, 20, 21, 5, 12, 12, 5, 20, 7, 20, 3, 20, 5, 5, 20, 12, 20, 20, 20, 0, 7]
+
 Reference:
 [2, 7, 2, 5, 6, 3, 20, 9, 7, 9, 10, 11, 16, 16, 16, 12, 20, 19, 20, 0, 20]
 ```
 
 ## Reference
-[1] https://web.stanford.edu/~jurafsky/slp3/
+[1] https://web.stanford.edu/~jurafsky/slp3/  
+[2] https://github.com/neubig/nlptutorial/blob/master/download/04-hmm/nlp-programming-en-04-hmm.pdf

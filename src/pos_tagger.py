@@ -238,6 +238,8 @@ def main(args):
         print(text)
         print("Prediction:")
         print(tagger.tag(text, args.split_token))
+        print("Reference: ")
+        print(sample)
 
 
 if __name__ == "__main__":
