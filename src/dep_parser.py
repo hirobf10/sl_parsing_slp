@@ -224,7 +224,7 @@ class MSTParser:
         return scores
 
     def _get_best_edges(self, scores: np.ndarray) -> List[Tuple[int, float]]:
-        #         ignore 0-th row because it would contain scores between ROOT as dependent and words as head
+        # ignore 0-th row because it would contain scores between ROOT as dependent and words as head
         return [
             (np.argmax(scores[i, :]), np.max(scores[i, :])) if i != 0 else (-1, -1e3)
             for i in range(scores.shape[0])
@@ -311,6 +311,8 @@ def main(args):
         print(" ".join([token[1] for token in sentence]))
         print("Prediction: ")
         print(parser.parse(sentence))
+        print("Reference: ")
+        print(parser._extract_test(sentence))
 
 
 if __name__ == "__main__":
