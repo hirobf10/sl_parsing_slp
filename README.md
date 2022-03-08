@@ -1,5 +1,5 @@
 # sl_parsing_slp
-This repository is to submit the assignment given in study group SLP.
+This repository is for submitting the assignment given in study group SLP.
 I implemented an POS tagger and an dependency parser from scratch.
 
 ## Install dependencies
